@@ -1,0 +1,44 @@
+kind: List
+metadata:
+  resourceVersion: ""
+  selfLink: ""
+apiVersion: v1
+items:
+- apiVersion: v1
+  kind: Namespace
+  metadata:
+    name: buildercicd
+- apiVersion: rbac.authorization.k8s.io/v1
+  kind: Role
+  metadata:
+    name: app-view
+    namespace: buildercicd
+  rules:
+  - apiGroups:
+    - ""
+    resources:
+    - configmaps
+    - serviceaccounts
+    - secrets
+    verbs:
+    - get
+    - list
+    - watch
+- apiVersion: v1
+  kind: ServiceAccount
+  metadata:
+    name: api-builder-sa
+    namespace: buildercicd
+- apiVersion: rbac.authorization.k8s.io/v1
+  kind: RoleBinding
+  metadata:
+    name: api-builder-rb
+    namespace: buildercicd
+  roleRef:
+    apiGroup: rbac.authorization.k8s.io
+    kind: Role
+    name: app-view
+  subjects:
+  - kind: ServiceAccount
+    name: api-builder-sa
+    namespace: buildercicd

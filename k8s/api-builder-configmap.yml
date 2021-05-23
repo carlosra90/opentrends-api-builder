@@ -17,10 +17,14 @@ data:
         console:
           enabled: true
           path: /h2-ui
+          settings:
+            web-allow-others: true
       profiles: kubernetes
-        application:
-          services:
-            external:
-              url: 'http://builder.localhost.com:8080'
+      application:
+        services:
+          external:
+            url: 'http://builder.localhost.com:8080'
     server:
       port: 8080
+      servlet:
+        context-path: /build

@@ -18,7 +18,7 @@ import co.com.cramirez.constraint.impl.VersionValidator;
 @Target({ FIELD, METHOD })
 @Constraint(validatedBy = VersionValidator.class)
 public @interface VersionConstraint {
-	String message() default "Err04 Invalid Version Number";
+	String message() default "Err04 Invalid Version Number, it must have n.n.n pattern";
 
 	Class<?>[] groups() default {};
 
