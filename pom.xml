@@ -20,7 +20,7 @@
 		<hibernate-validator.version>6.0.10.Final</hibernate-validator.version>
 		<swagger.version>2.9.2</swagger.version>
 		<!-- Fabric8 Build in Vars -->
-		<cloud.core.namespace>api-builder</cloud.core.namespace>
+		<cloud.core.namespace>buildercicd</cloud.core.namespace>
 		<deploy.replicas>1</deploy.replicas>
 		<product>OpenTrends</product>
 		<environment.domain>localhost.com</environment.domain>
