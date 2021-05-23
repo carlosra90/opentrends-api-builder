@@ -50,7 +50,7 @@ public class ApiBuilderServiceImpl implements ApiBuilderService, Serializable {
 			log.info("Finalizing consume ... [Exteral response= {}]", responseExternal.getBody());
 			response = ApiBuilderResponseDto.builder().message("ok".concat(" ").concat(responseExternal.getBody()))
 					.build();
-			return new ResponseEntity<ApiBuilderResponseDto>(response, HttpStatus.OK);
+			return new ResponseEntity<ApiBuilderResponseDto>(response, HttpStatus.CREATED);
 		} catch (Exception e) {
 			response = ApiBuilderResponseDto.builder().message(e.getMessage()).build();
 			return new ResponseEntity<ApiBuilderResponseDto>(response, HttpStatus.INTERNAL_SERVER_ERROR);

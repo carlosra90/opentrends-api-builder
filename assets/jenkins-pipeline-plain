@@ -1,0 +1,187 @@
+import jenkins.model.Jenkins
+import hudson.model.*
+pipeline {
+
+    agent any
+	stages { 
+	 
+	 	    stage('SCM Gitlab checkout'){
+					steps{
+					    script{
+					        sh '''
+					        echo "
+					        checkout([$class: 'GitSCM', branches: [[name: '*/'+env.branch ]], browser: [$class: 'GitLab', repoUrl: ''], extensions: [[$class: 'RelativeTargetDirectory', relativeTargetDir: env.parentdir], [$class: 'SubmoduleOption', disableSubmodules: false, parentCredentials: true, recursiveSubmodules: true, reference: '', threads: 2, trackingSubmodules: false]], userRemoteConfigs: [[credentialsId: 'ldap_git_scm', name: 'origin', refspec: '+refs/heads/'+env.branch+':refs/remotes/origin/'+env.branch, url: env.giturl]]])
+					        "
+					        '''
+					    }
+					}
+	 	    }
+	 	    
+	 	    stage('Grants success compile project'){
+
+				steps{   
+					      script{
+					          sh '''
+					             echo "
+                                 configFileProvider([configFile(fileId: env.mvnxmlsettingsid, targetLocation: env.parentdir+'/settings.xml', variable: 'mvn_repository')]) {
+                            
+                                   cd ${parentdir}
+						         	mvn  clean package  -s settings.xml -Dmaven.test.skip=true -Dmaven.test.failure.ignore=true {MAVEN_EXTRA_OPT} 
+                                 }
+                                 "
+                                 '''
+					        }
+                }	
+			}			
+		
+            stage('Initializating static code analysis with SonarQube') {
+		    
+			
+			steps {
+
+                script{
+					          sh '''
+					             echo "
+                                 
+                                    withSonarQubeEnv('SonarQubeEnv'){
+                                                   
+                                                    cd ${parentdir}
+                                                    mvn clean package -s ../settings.xml org.sonarsource.scanner.maven:sonar-maven-plugin:3.2:sonar -Dmaven.test.skip=true -Dsonar.projectKey=${POM_GROUPID}:${POM_ARTIFACTID} -Dsonar.projectVersion=${POM_VERSION}  -Dsonar.login=${sonartoken}  -Dsonar.host.url=http://sonar.localhost.com
+                                                    
+                                            }
+                                            
+                                                timeout(time: 15, unit: 'SECONDS') {
+                                                waitForQualityGate(credentialsId: env.sonartoken, abortPipeline: true )
+                                                
+                                                }
+				                     "
+                                 '''
+                }
+            
+            
+            
+            }
+			post{
+						success {
+							echo 'Finished successfully SATS Analysis'
+						}
+						failure{
+							echo 'An error has occurred SATS Analysis'
+						}
+					}
+		
+		}
+        
+        
+        		stage('Pushing artifact to nexuss repository'){
+
+					steps{
+					   script{
+					       try {
+							sh '''
+                            echo "
+							cd ${parentdir}
+							mvn clean package  -P${profile} -s settings.xml ${MAVEN_EXTRA_OPT} 
+							mvn -pl  ${moduledir}   deploy:deploy-file -DgroupId=${POM_GROUPID} -DartifactId=${POM_ARTIFACTID} -Dversion=${POM_VERSION} -DgeneratePom=false -Dpackaging=${mvnpackaging} -DrepositoryId=nexus -Durl="${nexusurl}" -Dfile=./target/${POM_ARTIFACTID}-${POM_VERSION}.${mvnpackaging} -s settings.xml
+							"
+                            '''
+					       }catch (e) {
+                        echo 'Err:' + e.toString()
+					       }
+                        
+                    }
+						
+					}
+		}
+
+
+
+
+        		stage('Preparing artifact for docker image'){
+					steps{   
+                        script{ 
+                            sh '''
+                            echo "
+                            cd ${parentdir}
+							mvn clean package  -P${profile} fabric8:resource -s settings.xml -Dmaven.test.skip=true -Dmaven.test.failure.ignore=true ${MAVEN_EXTRA_OPT}
+                            "
+                            '''
+                        }	
+				   }			
+		}
+
+
+		stage('Building & pushing docker image'){
+					steps{  
+                        script{ 
+                            sh '''    
+                            echo "
+                            configFileProvider([configFile(fileId: env.ansibleymldockerpushid, targetLocation: env.parentdir+'/docker_push_registry.yaml', variable: 'docker_registry_yml'), configFile(fileId: env.ansiblecfgid, targetLocation: env.parentdir+'/ansible.cfg', variable: 'ansible_cfg'), configFile(fileId: env.ansiblehostid, targetLocation: env.parentdir+'/hosts', variable: 'hosts_cfg'), configFile(fileId: env.ansibledockerfileid, targetLocation: env.parentdir+'/Dockerfile', variable: 'dockerfile')  ]) {
+								
+								withCredentials([usernamePassword(credentialsId: env.nexusldapregistryid , passwordVariable: 'registry_psswd', usernameVariable: 'registry_user')]) {
+								
+								     cd ${parentdir}
+								     ansible-playbook docker_push_registry.yaml -i hosts -u ${ansibleuser}  -e "abl_build=${BUILD_NUMBER} abl_registry=${dockerregistryurl} abl_module_dir=${moduledir} abl_abosultepath_dir=${WORKSPACE}/${parentdir} abl_artifact_id=${POM_ARTIFACTID} abl_artifact_version=${POM_VERSION} abl_artifact_package=${mvnpackaging} abl_namespace=${target_namespace} abl_registry_user=${registry_user} abl_registry_pwd=${registry_psswd}"
+								
+								}
+								
+                        }	
+                        "
+                        '''
+                    }
+				   }
+				   
+		}
+
+
+		stage('Initializating cloud environment'){
+
+			steps {
+                script{
+                    sh 'echo "if the flag init env is set true, then i proceed to initializate kubernetes namespaces, roles, secrets, sa,... related to the container job"'
+                
+            }
+			}
+		}
+
+        stage('Deploying Components'){
+			steps{   
+
+                script {
+                    sh ' echo " deploy all artifacts previously created"'
+                }
+            }
+                }
+
+		stage('Cleaning up data directory'){
+			steps{   
+				script{
+                    sh '''
+                    echo "
+                    rm -rf ${parentdir}*
+                    "
+                    '''
+				}
+			}
+		}	
+        
+        
+        
+     		stage('Sending Env Deploy Notification'){
+			steps{   
+				script{
+                    sh '''
+                    echo "
+                    Build succesfu or fail delivery
+                    "
+                    '''
+				}
+			}
+		}	   
+        
+        
+        
+        
+        }
+	    
+	}
