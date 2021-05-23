@@ -1,0 +1,19 @@
+metadata:
+  name: ${project.artifactId}
+data:
+  application.yml: |-
+    logging:
+     config: /config/logback.xml
+    spring:
+      h2:
+        console:
+          enabled: true
+          path: /h2-ui
+      profiles: ${spring.profiles.active}
+        application:
+          services:
+            external:
+              url: 'http://builder.localhost.com:8080'
+    server:
+      port: ${server.port}
+

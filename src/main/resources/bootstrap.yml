@@ -1,0 +1,10 @@
+spring:
+  application:
+    name: ${project.artifactId}
+  cloud:
+    kubernetes:
+      config:
+        sources:
+         - name: ${project.artifactId}
+           namespace: ${target-namespace}
+

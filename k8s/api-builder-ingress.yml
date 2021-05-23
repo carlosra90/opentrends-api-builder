@@ -1,0 +1,22 @@
+---
+apiVersion: extensions/v1beta1
+kind: Ingress
+metadata:
+  annotations:
+    kubernetes.io/ingress.class: router-nginx
+  labels:
+    app: api-builder
+    product: OpenTrends
+    group: co.com.cramirez
+    version: 0.0.1
+    provider: fabric8
+  name: api-builder
+spec:
+  rules:
+  - host: api-builder.localhost.com
+    http:
+      paths:
+      - backend:
+          serviceName: api-builder
+          servicePort: 8080
+        path: /build

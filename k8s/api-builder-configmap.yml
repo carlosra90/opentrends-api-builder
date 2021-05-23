@@ -1,0 +1,26 @@
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  labels:
+    app: api-builder
+    provider: fabric8
+    version: 0.0.1
+    group: co.com.cramirez
+  name: api-builder
+data:
+  application.yml: |-
+    logging:
+     config: /config/logback.xml
+    spring:
+      h2:
+        console:
+          enabled: true
+          path: /h2-ui
+      profiles: kubernetes
+        application:
+          services:
+            external:
+              url: 'http://builder.localhost.com:8080'
+    server:
+      port: 8080

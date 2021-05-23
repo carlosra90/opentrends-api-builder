@@ -1,0 +1,97 @@
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  annotations:
+    configmap.fabric8.io/update-on-change: api-builder
+    fabric8.io/git-commit: aebac358a88c937547c50c2ffc2beb96f5d54c79
+    fabric8.io/iconUrl: img/icons/spring-boot.svg
+    fabric8.io/git-branch: dev
+    fabric8.io/metrics-path: dashboard/file/kubernetes-pods.json/?var-project=api-builder&var-version=0.0.1
+  labels:
+    app: api-builder
+    product: OpenTrends
+    group: co.com.cramirez
+    version: 0.0.1
+    provider: fabric8
+  name: api-builder
+spec:
+  replicas: 1
+  revisionHistoryLimit: 10
+  selector:
+    matchLabels:
+      app: api-builder
+      provider: fabric8
+      group: co.com.cramirez
+  template:
+    metadata:
+      annotations:
+        fabric8.io/git-commit: aebac358a88c937547c50c2ffc2beb96f5d54c79
+        fabric8.io/iconUrl: img/icons/spring-boot.svg
+        configmap.fabric8.io/update-on-change: api-builder
+        fabric8.io/git-branch: dev
+        fabric8.io/metrics-path: dashboard/file/kubernetes-pods.json/?var-project=api-builder&var-version=0.0.1
+      labels:
+        app: api-builder
+        product: OpenTrends
+        group: co.com.cramirez
+        version: 0.0.1
+        provider: fabric8
+    spec:
+      containers:
+      - env:
+        - name: JAVA_OPTIONS
+          value: -Dsun.jnu.encoding=UTF-8 -Dfile.encoding=UTF-8 -XX:+UseStringDeduplication
+            -XX:+OptimizeStringConcat -XX:+UseStringCache
+        - name: KUBERNETES_NAMESPACE
+          valueFrom:
+            fieldRef:
+              fieldPath: metadata.namespace
+        image: charlie335/api-builder:0.0.1
+        imagePullPolicy: IfNotPresent
+        livenessProbe:
+          failureThreshold: 2
+          initialDelaySeconds: 80
+          periodSeconds: 10
+          tcpSocket:
+            port: http
+          timeoutSeconds: 5
+        name: api-builder
+        ports:
+        - containerPort: 8080
+          name: http
+        - containerPort: 9779
+          name: prometheus
+          protocol: TCP
+        - containerPort: 8778
+          name: jolokia
+          protocol: TCP
+        readinessProbe:
+          failureThreshold: 2
+          initialDelaySeconds: 12
+          periodSeconds: 5
+          tcpSocket:
+            port: http
+          timeoutSeconds: 5
+        resources:
+          limits:
+            cpu: 750m
+            memory: 512M
+          requests:
+            cpu: 300m
+            memory: 256M
+        securityContext:
+          privileged: false
+        volumeMounts:
+        - mountPath: /config
+          name: logback-volume
+      serviceAccountName: api-builder-sa
+      volumes:
+      - emptyDir: {}
+        name: keystore-volume
+      - configMap:
+          items:
+          - key: logback.xml
+            path: logback.xml
+          name: api-builder-logback
+        name: logback-volume

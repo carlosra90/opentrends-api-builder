@@ -1,0 +1,80 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<settings
+ xmlns="http://maven.apache.org/SETTINGS/1.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+ xsi:schemaLocation="http://maven.apache.org/SETTINGS/1.0.0 http://maven.apache.org/xsd/settings-1.0.0.xsd">
+ 
+ <profiles>
+        <profile>
+            <id>repos</id>
+			 <repositories>
+                <repository>
+                  <id>jcenter-snapshots</id>
+                  <name>jcenter</name>
+                  <url>https://jcenter.bintray.com/</url>
+                </repository>
+            </repositories>
+            <pluginRepositories>
+
+                <pluginRepository>
+                    <id>maven.central</id>
+                    <name>Maven Central</name>
+                    <url>https://repo1.maven.org/maven2</url>
+                    <snapshots>
+                        <enabled>false</enabled>
+                    </snapshots>
+                    <releases>
+                        <enabled>true</enabled>
+                        <updatePolicy>never</updatePolicy>
+                    </releases>
+                </pluginRepository>
+
+                <pluginRepository>
+                    <id>redhat.ga</id>
+                    <name>Red Hat General Availability Repository</name>
+                    <url>https://maven.repository.redhat.com/ga</url>
+                    <snapshots>
+                        <enabled>false</enabled>
+                    </snapshots>
+                    <releases>
+                        <enabled>true</enabled>
+                        <updatePolicy>never</updatePolicy>
+                    </releases>
+                </pluginRepository>
+
+                <pluginRepository>
+                    <id>redhat.ea</id>
+                    <name>Red Hat Early Access Repository</name>
+                    <url>https://maven.repository.redhat.com/earlyaccess/all</url>
+                    <snapshots>
+                        <enabled>false</enabled>
+                    </snapshots>
+                    <releases>
+                        <enabled>true</enabled>
+                        <updatePolicy>never</updatePolicy>
+                    </releases>
+                </pluginRepository>
+
+                <pluginRepository>
+                    <id>jboss-ea</id>
+                    <url>https://repository.jboss.org/nexus/content/repositories/ea</url>
+                    <releases>
+                        <enabled>true</enabled>
+                    </releases>
+                    <snapshots>
+                        <enabled>true</enabled>
+                    </snapshots>
+                </pluginRepository>
+
+            </pluginRepositories>
+        </profile>
+    </profiles>
+
+    <activeProfiles>
+        <activeProfile>repos</activeProfile>
+    </activeProfiles>
+	
+ <pluginGroups/>
+
+ <mirrors/>
+
+</settings>

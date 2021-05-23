@@ -1,0 +1,302 @@
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+	<modelVersion>4.0.0</modelVersion>
+	<groupId>co.com.cramirez</groupId>
+	<artifactId>api-builder</artifactId>
+	<version>0.0.1</version>
+	<packaging>jar</packaging>
+
+	<properties>
+		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+		<project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
+		<spring-boot.version>2.2.0.RELEASE</spring-boot.version>
+		<spring-cloud.version>Hoxton.SR1</spring-cloud.version>
+		<springboot-graceful-shutdown.version>2.0.1</springboot-graceful-shutdown.version>
+		<project.java.version>1.8</project.java.version>
+		<springboot.gracefultime>10</springboot.gracefultime>
+		<fuse.version>7.4.0.fuse-sb2-740019-redhat-00005</fuse.version>
+		<logstash-logback-encoder.version>6.1</logstash-logback-encoder.version>
+		<hibernate-validator.version>6.0.10.Final</hibernate-validator.version>
+		<swagger.version>2.9.2</swagger.version>
+		<!-- Fabric8 Build in Vars -->
+		<cloud.core.namespace>api-builder</cloud.core.namespace>
+		<deploy.replicas>1</deploy.replicas>
+		<product>OpenTrends</product>
+		<environment.domain>localhost.com</environment.domain>
+		<deployment.apiversion>apps/v1</deployment.apiversion>
+		<resource.request.cpu>300m</resource.request.cpu>
+		<resource.request.ram>256M</resource.request.ram>
+		<resource.limit.cpu>750m</resource.limit.cpu>
+		<resource.limit.ram>512M</resource.limit.ram>
+		<project.tagversion>${project.version}</project.tagversion>
+		<server.port>8080</server.port>
+		<!-- /Fabric8 Build in Vars -->
+	</properties>
+
+	<dependencyManagement>
+		<dependencies>
+			<dependency>
+				<!-- Import dependency management from Spring Boot -->
+				<groupId>org.springframework.boot</groupId>
+				<artifactId>spring-boot-dependencies</artifactId>
+				<version>${spring-boot.version}</version>
+				<type>pom</type>
+				<scope>import</scope>
+			</dependency>
+
+			<dependency>
+				<groupId>org.springframework.cloud</groupId>
+				<artifactId>spring-cloud-dependencies</artifactId>
+				<version>${spring-cloud.version}</version>
+				<type>pom</type>
+				<scope>import</scope>
+			</dependency>
+
+		</dependencies>
+	</dependencyManagement>
+
+	<build>
+		<pluginManagement>
+			<plugins>
+				<plugin>
+					<groupId>org.apache.maven.plugins</groupId>
+					<artifactId>maven-compiler-plugin</artifactId>
+					<version>3.7.0</version>
+					<configuration>
+						<source>${project.java.version}</source>
+						<target>${project.java.version}</target>
+					</configuration>
+				</plugin>
+
+				<plugin>
+					<groupId>org.jboss.redhat-fuse</groupId>
+					<artifactId>fabric8-maven-plugin</artifactId>
+					<version>${fuse.version}</version>
+				</plugin>
+
+				<plugin>
+					<groupId>org.springframework.boot</groupId>
+					<artifactId>spring-boot-maven-plugin</artifactId>
+					<executions>
+						<execution>
+							<goals>
+								<goal>repackage</goal>
+							</goals>
+						</execution>
+					</executions>
+					<version>${spring-boot.version}</version>
+				</plugin>
+			</plugins>
+		</pluginManagement>
+		<plugins>
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-compiler-plugin</artifactId>
+				<version>3.7.0</version>
+				<configuration>
+					<source>${project.java.version}</source>
+					<target>${project.java.version}</target>
+				</configuration>
+			</plugin>
+
+			<plugin>
+				<groupId>org.springframework.boot</groupId>
+				<artifactId>spring-boot-maven-plugin</artifactId>
+				<configuration>
+					<environmentVariables>
+						<SERVICE_PORT>8080</SERVICE_PORT>
+					</environmentVariables>
+				</configuration>
+				<executions>
+					<execution>
+						<goals>
+							<goal>repackage</goal>
+						</goals>
+					</execution>
+				</executions>
+				<version>${spring-boot.version}</version><!--$NO-MVN-MAN-VER$ -->
+			</plugin>
+		</plugins>
+	</build>
+
+	<dependencies>
+		<!-- default libraries -->
+		<dependency>
+			<groupId>org.projectlombok</groupId>
+			<artifactId>lombok</artifactId>
+			<scope>provided</scope>
+		</dependency>
+		<dependency>
+			<groupId>org.springframework.boot</groupId>
+			<artifactId>spring-boot-starter-web</artifactId>
+
+		</dependency>
+
+		<dependency>
+			<groupId>org.springframework.cloud</groupId>
+			<artifactId>spring-cloud-context</artifactId>
+		</dependency>
+
+		<dependency>
+			<groupId>org.springframework.boot</groupId>
+			<artifactId>spring-boot-starter-actuator</artifactId>
+		</dependency>
+		<dependency>
+			<groupId>ch.sbb</groupId>
+			<artifactId>springboot-graceful-shutdown</artifactId>
+			<version>${springboot-graceful-shutdown.version}</version>
+		</dependency>
+
+		<!-- Properties -->
+		<dependency>
+			<groupId>org.springframework.boot</groupId>
+			<artifactId>spring-boot-configuration-processor</artifactId>
+			<optional>true</optional>
+		</dependency>
+		<!-- Aggregated logs using JSON -->
+		<dependency>
+			<groupId>org.slf4j</groupId>
+			<artifactId>slf4j-api</artifactId>
+		</dependency>
+		<dependency>
+			<groupId>org.slf4j</groupId>
+			<artifactId>slf4j-ext</artifactId>
+		</dependency>
+		<dependency>
+			<groupId>ch.qos.logback</groupId>
+			<artifactId>logback-core</artifactId>
+		</dependency>
+		<dependency>
+			<groupId>ch.qos.logback</groupId>
+			<artifactId>logback-classic</artifactId>
+		</dependency>
+		<dependency>
+			<groupId>ch.qos.logback</groupId>
+			<artifactId>logback-access</artifactId>
+		</dependency>
+		<dependency>
+			<groupId>net.logstash.logback</groupId>
+			<artifactId>logstash-logback-encoder</artifactId>
+			<version>${logstash-logback-encoder.version}</version>
+		</dependency>
+		<!-- /default libraries -->
+		<!-- database -->
+		<dependency>
+			<groupId>org.springframework.boot</groupId>
+			<artifactId>spring-boot-starter-data-jpa</artifactId>
+		</dependency>
+		<dependency>
+			<groupId>com.h2database</groupId>
+			<artifactId>h2</artifactId>
+			<scope>runtime</scope>
+		</dependency>
+		<!-- /database -->
+		<!-- validation -->
+		<dependency>
+			<groupId>org.hibernate</groupId>
+			<artifactId>hibernate-validator</artifactId>
+			<version>${hibernate-validator.version}</version>
+		</dependency>
+		<!-- /validation -->
+		<!-- Swagger 2 -->
+		<dependency>
+			<groupId>org.springframework.plugin</groupId>
+			<artifactId>spring-plugin-core</artifactId>
+			<version>1.2.0.RELEASE</version>
+		</dependency>
+		<dependency>
+			<groupId>io.springfox</groupId>
+			<artifactId>springfox-swagger2</artifactId>
+			<version>${swagger.version}</version>
+		</dependency>
+		<dependency>
+			<groupId>io.springfox</groupId>
+			<artifactId>springfox-swagger-ui</artifactId>
+			<version>${swagger.version}</version>
+		</dependency>
+		<!-- /Swagger 2 -->
+	</dependencies>
+
+
+	<profiles>
+		<profile>
+			<id>dev</id>
+			<activation>
+				<activeByDefault>true</activeByDefault>
+			</activation>
+			<properties>
+				<spring.profiles.active>dev</spring.profiles.active>
+			</properties>
+			<build>
+				<resources>
+					<resource>
+						<directory>src/main/resources</directory>
+						<excludes>
+							<exclude>bootstrap.yml</exclude>
+						</excludes>
+						<filtering>true</filtering>
+					</resource>
+				</resources>
+			</build>
+		</profile>
+
+		<profile>
+			<id>kubernetes</id>
+			<properties>
+				<spring.profiles.active>kubernetes</spring.profiles.active>
+				<target-namespace>${cloud.core.namespace}</target-namespace>
+			</properties>
+			<dependencies>
+				<dependency>
+					<groupId>org.springframework.cloud</groupId>
+					<artifactId>spring-cloud-starter-kubernetes-config</artifactId>
+				</dependency>
+			</dependencies>
+			<build>
+				<resources>
+					<resource>
+						<directory>src/main/resources</directory>
+						<filtering>true</filtering>
+					</resource>
+				</resources>
+				<plugins>
+					<plugin>
+						<groupId>org.jboss.redhat-fuse</groupId>
+						<artifactId>fabric8-maven-plugin</artifactId>
+						<configuration>
+							<buildStrategy>s2i</buildStrategy>
+							<mode>kubernetes</mode>
+							<namespace>${target-namespace}</namespace>
+							<access>
+								<masterUrl>${cloud.master.url}</masterUrl>
+							</access>
+							<enricher>
+								<excludes>
+									<exclude>fmp-openshift-route</exclude>
+									<exclude>spring-boot-health-check</exclude>
+								</excludes>
+								<config>
+									<fmp-revision-history>
+										<limit>10</limit>
+									</fmp-revision-history>
+								</config>
+							</enricher>
+						</configuration>
+						<executions>
+							<execution>
+								<goals>
+									<goal>resource</goal>
+								</goals>
+							</execution>
+						</executions>
+					</plugin>
+
+
+
+				</plugins>
+			</build>
+		</profile>
+	</profiles>
+
+</project>

@@ -1,0 +1,21 @@
+kind: Ingress
+apiVersion: extensions/v1beta1
+metadata:
+  name: ${project.artifactId}
+  labels:
+    app: ${project.artifactId}
+    product: ${product}
+    group: ${project.groupId}
+    version: ${project.version}
+  annotations:
+    kubernetes.io/ingress.class: router-nginx
+spec:
+  rules:
+    - host: ${project.artifactId}.${environment.domain}
+      http:
+        paths:
+          - pathType: Prefix
+            path: /build
+            backend:
+              serviceName: ${project.artifactId}
+              servicePort: ${server.port}

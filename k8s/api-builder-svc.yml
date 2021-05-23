@@ -1,0 +1,27 @@
+---
+apiVersion: v1
+kind: Service
+metadata:
+  annotations:
+    fabric8.io/git-commit: aebac358a88c937547c50c2ffc2beb96f5d54c79
+    fabric8.io/iconUrl: img/icons/spring-boot.svg
+    fabric8.io/git-branch: dev
+    prometheus.io/scrape: "true"
+    prometheus.io/port: "9779"
+  labels:
+    expose: "true"
+    app: api-builder
+    provider: fabric8
+    version: 0.0.1
+    group: co.com.cramirez
+  name: api-builder
+spec:
+  ports:
+  - name: http
+    port: 8080
+    protocol: TCP
+    targetPort: 8080
+  selector:
+    app: api-builder
+    provider: fabric8
+    group: co.com.cramirez

@@ -1,0 +1,64 @@
+apiVersion: ${deployment.apiversion}
+metadata:
+  labels: 
+    app: ${project.artifactId}
+    product: ${product}
+    group: ${project.groupId}
+    version: ${project.version}
+  annotations:
+    configmap.fabric8.io/update-on-change: ${project.artifactId}
+spec:
+  replicas: ${deploy.replicas}
+  template:
+    metadata: 
+      labels: 
+        app: ${project.artifactId}
+        product: ${product}
+        group: ${project.groupId}
+        version: ${project.version}
+    spec:
+      serviceAccountName: ${target-namespace}-sa
+      volumes:
+      - name: keystore-volume
+        emptyDir: {
+          }
+      - name: logback-volume
+        configMap:
+          name: ${project.artifactId}-logback
+          items:
+           - key: logback.xml
+             path: logback.xml
+      containers:
+        - name: ${project.artifactId}
+          image: charlie335/${project.artifactId}:${project.version}
+          imagePullPolicy: IfNotPresent
+          ports:
+          - containerPort: ${server.port}
+            name: http
+          env:
+          - name: JAVA_OPTIONS
+            value: "-Dsun.jnu.encoding=UTF-8 -Dfile.encoding=UTF-8 -XX:+UseStringDeduplication -XX:+OptimizeStringConcat -XX:+UseStringCache"
+          resources:
+            requests:
+              cpu: "${resource.request.cpu}"
+              memory: ${resource.request.ram}
+            limits:
+              cpu: "${resource.limit.cpu}"
+              memory: ${resource.limit.ram}
+          readinessProbe:
+            tcpSocket:
+              port: http
+            initialDelaySeconds: 12
+            timeoutSeconds: 5
+            periodSeconds: 5
+            failureThreshold: 2
+          livenessProbe:
+            tcpSocket:
+              port: http
+            initialDelaySeconds: 80
+            timeoutSeconds: 5
+            periodSeconds: 10
+            failureThreshold: 2
+          volumeMounts:
+          - name: logback-volume
+            mountPath: /config
