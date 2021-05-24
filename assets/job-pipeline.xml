@@ -1,5 +1,4 @@
-<?xml version='1.1' encoding='UTF-8'?>
-<flow-definition plugin="workflow-job@2.40">
+<?xml version="1.1" encoding="UTF-8"?><flow-definition plugin="workflow-job@2.40">
   <actions>
     <org.jenkinsci.plugins.pipeline.modeldefinition.actions.DeclarativeJobAction plugin="pipeline-model-definition@1.8.4"/>
     <org.jenkinsci.plugins.pipeline.modeldefinition.actions.DeclarativeJobPropertyTrackerAction plugin="pipeline-model-definition@1.8.4">
@@ -9,7 +8,7 @@
       <options/>
     </org.jenkinsci.plugins.pipeline.modeldefinition.actions.DeclarativeJobPropertyTrackerAction>
   </actions>
-  <description></description>
+  <description/>
   <keepDependencies>false</keepDependencies>
   <properties/>
   <definition class="org.jenkinsci.plugins.workflow.cps.CpsFlowDefinition" plugin="workflow-cps@2.92">
@@ -20,57 +19,74 @@ pipeline {
     agent any
 	stages { 
 	 
-	 	    stage(&apos;SCM Gitlab checkout&apos;){
+	 	    stage('SCM Gitlab checkout'){
 					steps{
 					    script{
-					        sh &apos;&apos;&apos;
-					        echo &quot;
-					        checkout([$class: &apos;GitSCM&apos;, branches: [[name: &apos;*/&apos;+env.branch ]], browser: [$class: &apos;GitLab&apos;, repoUrl: &apos;&apos;], extensions: [[$class: &apos;RelativeTargetDirectory&apos;, relativeTargetDir: env.parentdir], [$class: &apos;SubmoduleOption&apos;, disableSubmodules: false, parentCredentials: true, recursiveSubmodules: true, reference: &apos;&apos;, threads: 2, trackingSubmodules: false]], userRemoteConfigs: [[credentialsId: &apos;ldap_git_scm&apos;, name: &apos;origin&apos;, refspec: &apos;+refs/heads/&apos;+env.branch+&apos;:refs/remotes/origin/&apos;+env.branch, url: env.giturl]]])
-					        &quot;
-					        &apos;&apos;&apos;
+					        sh '''
+					        echo "
+					        checkout([$class: 'GitSCM', branches: [[name: '*/'+env.branch ]], browser: [$class: 'GitLab', repoUrl: ''], extensions: [[$class: 'RelativeTargetDirectory', relativeTargetDir: env.parentdir], [$class: 'SubmoduleOption', disableSubmodules: false, parentCredentials: true, recursiveSubmodules: true, reference: '', threads: 2, trackingSubmodules: false]], userRemoteConfigs: [[credentialsId: 'ldap_git_scm', name: 'origin', refspec: '+refs/heads/'+env.branch+':refs/remotes/origin/'+env.branch, url: env.giturl]]])
+					        "
+					        '''
 					    }
 					}
 	 	    }
 	 	    
-	 	    stage(&apos;Grants success compile project&apos;){
+	 	    stage('Grants success compile project'){
 
 				steps{   
 					      script{
-					          sh &apos;&apos;&apos;
-					             echo &quot;
-                                 configFileProvider([configFile(fileId: env.mvnxmlsettingsid, targetLocation: env.parentdir+&apos;/settings.xml&apos;, variable: &apos;mvn_repository&apos;)]) {
+					          sh '''
+					             echo "
+                                 configFileProvider([configFile(fileId: env.mvnxmlsettingsid, targetLocation: env.parentdir+'/settings.xml', variable: 'mvn_repository')]) {
                             
                                    cd ${parentdir}
 						         	mvn  clean package  -s settings.xml -Dmaven.test.skip=true -Dmaven.test.failure.ignore=true {MAVEN_EXTRA_OPT} 
                                  }
-                                 &quot;
-                                 &apos;&apos;&apos;
+                                 "
+                                 '''
+					        }
+                }	
+			}	
+			
+				 	    stage('Junit testing with Mockito'){
+
+				steps{   
+					      script{
+					          sh '''
+					             echo "
+                                 configFileProvider([configFile(fileId: env.mvnxmlsettingsid, targetLocation: env.parentdir+'/settings.xml', variable: 'mvn_repository')]) {
+                            
+                                   cd ${parentdir}
+						         	mvn  clean package  -s settings.xml -Dmaven.test.skip=false -Dmaven.test.failure.ignore=false {MAVEN_EXTRA_OPT} 
+                                 }
+                                 "
+                                 '''
 					        }
                 }	
 			}			
 		
-            stage(&apos;Initializating static code analysis with SonarQube&apos;) {
+            stage('Initializating static code analysis with SonarQube') {
 		    
 			
 			steps {
 
                 script{
-					          sh &apos;&apos;&apos;
-					             echo &quot;
+					          sh '''
+					             echo "
                                  
-                                    withSonarQubeEnv(&apos;SonarQubeEnv&apos;){
+                                    withSonarQubeEnv('SonarQubeEnv'){
                                                    
                                                     cd ${parentdir}
                                                     mvn clean package -s ../settings.xml org.sonarsource.scanner.maven:sonar-maven-plugin:3.2:sonar -Dmaven.test.skip=true -Dsonar.projectKey=${POM_GROUPID}:${POM_ARTIFACTID} -Dsonar.projectVersion=${POM_VERSION}  -Dsonar.login=${sonartoken}  -Dsonar.host.url=http://sonar.localhost.com
                                                     
                                             }
                                             
-                                                timeout(time: 15, unit: &apos;SECONDS&apos;) {
+                                                timeout(time: 15, unit: 'SECONDS') {
                                                 waitForQualityGate(credentialsId: env.sonartoken, abortPipeline: true )
                                                 
                                                 }
-				                     &quot;
-                                 &apos;&apos;&apos;
+				                     "
+                                 '''
                 }
             
             
@@ -78,30 +94,30 @@ pipeline {
             }
 			post{
 						success {
-							echo &apos;Finished successfully SATS Analysis&apos;
+							echo 'Finished successfully SATS Analysis'
 						}
 						failure{
-							echo &apos;An error has occurred SATS Analysis&apos;
+							echo 'An error has occurred SATS Analysis'
 						}
 					}
 		
 		}
         
         
-        		stage(&apos;Pushing artifact to nexuss repository&apos;){
+        		stage('Pushing artifact to nexuss repository'){
 
 					steps{
 					   script{
 					       try {
-							sh &apos;&apos;&apos;
-                            echo &quot;
+							sh '''
+                            echo "
 							cd ${parentdir}
 							mvn clean package  -P${profile} -s settings.xml ${MAVEN_EXTRA_OPT} 
-							mvn -pl  ${moduledir}   deploy:deploy-file -DgroupId=${POM_GROUPID} -DartifactId=${POM_ARTIFACTID} -Dversion=${POM_VERSION} -DgeneratePom=false -Dpackaging=${mvnpackaging} -DrepositoryId=nexus -Durl=&quot;${nexusurl}&quot; -Dfile=./target/${POM_ARTIFACTID}-${POM_VERSION}.${mvnpackaging} -s settings.xml
-							&quot;
-                            &apos;&apos;&apos;
+							mvn -pl  ${moduledir}   deploy:deploy-file -DgroupId=${POM_GROUPID} -DartifactId=${POM_ARTIFACTID} -Dversion=${POM_VERSION} -DgeneratePom=false -Dpackaging=${mvnpackaging} -DrepositoryId=nexus -Durl="${nexusurl}" -Dfile=./target/${POM_ARTIFACTID}-${POM_VERSION}.${mvnpackaging} -s settings.xml
+							"
+                            '''
 					       }catch (e) {
-                        echo &apos;Err:&apos; + e.toString()
+                        echo 'Err:' + e.toString()
 					       }
                         
                     }
@@ -112,84 +128,84 @@ pipeline {
 
 
 
-        		stage(&apos;Preparing artifact for docker image&apos;){
+        		stage('Preparing artifact for docker image'){
 					steps{   
                         script{ 
-                            sh &apos;&apos;&apos;
-                            echo &quot;
+                            sh '''
+                            echo "
                             cd ${parentdir}
 							mvn clean package  -P${profile} fabric8:resource -s settings.xml -Dmaven.test.skip=true -Dmaven.test.failure.ignore=true ${MAVEN_EXTRA_OPT}
-                            &quot;
-                            &apos;&apos;&apos;
+                            "
+                            '''
                         }	
 				   }			
 		}
 
 
-		stage(&apos;Building &amp; pushing docker image&apos;){
+		stage('Building &amp; pushing docker image'){
 					steps{  
                         script{ 
-                            sh &apos;&apos;&apos;    
-                            echo &quot;
-                            configFileProvider([configFile(fileId: env.ansibleymldockerpushid, targetLocation: env.parentdir+&apos;/docker_push_registry.yaml&apos;, variable: &apos;docker_registry_yml&apos;), configFile(fileId: env.ansiblecfgid, targetLocation: env.parentdir+&apos;/ansible.cfg&apos;, variable: &apos;ansible_cfg&apos;), configFile(fileId: env.ansiblehostid, targetLocation: env.parentdir+&apos;/hosts&apos;, variable: &apos;hosts_cfg&apos;), configFile(fileId: env.ansibledockerfileid, targetLocation: env.parentdir+&apos;/Dockerfile&apos;, variable: &apos;dockerfile&apos;)  ]) {
+                            sh '''    
+                            echo "
+                            configFileProvider([configFile(fileId: env.ansibleymldockerpushid, targetLocation: env.parentdir+'/docker_push_registry.yaml', variable: 'docker_registry_yml'), configFile(fileId: env.ansiblecfgid, targetLocation: env.parentdir+'/ansible.cfg', variable: 'ansible_cfg'), configFile(fileId: env.ansiblehostid, targetLocation: env.parentdir+'/hosts', variable: 'hosts_cfg'), configFile(fileId: env.ansibledockerfileid, targetLocation: env.parentdir+'/Dockerfile', variable: 'dockerfile')  ]) {
 								
-								withCredentials([usernamePassword(credentialsId: env.nexusldapregistryid , passwordVariable: &apos;registry_psswd&apos;, usernameVariable: &apos;registry_user&apos;)]) {
+								withCredentials([usernamePassword(credentialsId: env.nexusldapregistryid , passwordVariable: 'registry_psswd', usernameVariable: 'registry_user')]) {
 								
 								     cd ${parentdir}
-								     ansible-playbook docker_push_registry.yaml -i hosts -u ${ansibleuser}  -e &quot;abl_build=${BUILD_NUMBER} abl_registry=${dockerregistryurl} abl_module_dir=${moduledir} abl_abosultepath_dir=${WORKSPACE}/${parentdir} abl_artifact_id=${POM_ARTIFACTID} abl_artifact_version=${POM_VERSION} abl_artifact_package=${mvnpackaging} abl_namespace=${target_namespace} abl_registry_user=${registry_user} abl_registry_pwd=${registry_psswd}&quot;
+								     ansible-playbook docker_push_registry.yaml -i hosts -u ${ansibleuser}  -e "abl_build=${BUILD_NUMBER} abl_registry=${dockerregistryurl} abl_module_dir=${moduledir} abl_abosultepath_dir=${WORKSPACE}/${parentdir} abl_artifact_id=${POM_ARTIFACTID} abl_artifact_version=${POM_VERSION} abl_artifact_package=${mvnpackaging} abl_namespace=${target_namespace} abl_registry_user=${registry_user} abl_registry_pwd=${registry_psswd}"
 								
 								}
 								
                         }	
-                        &quot;
-                        &apos;&apos;&apos;
+                        "
+                        '''
                     }
 				   }
 				   
 		}
 
 
-		stage(&apos;Initializating cloud environment&apos;){
+		stage('Initializating cloud environment'){
 
 			steps {
                 script{
-                    sh &apos;echo &quot;if the flag init env is set true, then i proceed to initializate kubernetes namespaces, roles, secrets, sa,... related to the container job&quot;&apos;
+                    sh 'echo "if the flag init env is set true, then i proceed to initializate kubernetes namespaces, roles, secrets, sa,... related to the container job"'
                 
             }
 			}
 		}
 
-        stage(&apos;Deploying Components&apos;){
+        stage('Deploying Components'){
 			steps{   
 
                 script {
-                    sh &apos; echo &quot; deploy all artifacts previously created&quot;&apos;
+                    sh ' echo " deploy all artifacts previously created"'
                 }
             }
                 }
 
-		stage(&apos;Cleaning up data directory&apos;){
+		stage('Cleaning up data directory'){
 			steps{   
 				script{
-                    sh &apos;&apos;&apos;
-                    echo &quot;
+                    sh '''
+                    echo "
                     rm -rf ${parentdir}*
-                    &quot;
-                    &apos;&apos;&apos;
+                    "
+                    '''
 				}
 			}
 		}	
         
         
         
-     		stage(&apos;Sending Env Deploy Notification&apos;){
+     		stage('Sending Env Deploy Notification'){
 			steps{   
 				script{
-                    sh &apos;&apos;&apos;
-                    echo &quot;
+                    sh '''
+                    echo "
                     Build succesfu or fail delivery
-                    &quot;
-                    &apos;&apos;&apos;
+                    "
+                    '''
 				}
 			}
 		}	   
