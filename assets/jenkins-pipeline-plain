@@ -32,6 +32,23 @@ pipeline {
                                  '''
 					        }
                 }	
+			}	
+			
+				 	    stage('Junit testing with Mockito'){
+
+				steps{   
+					      script{
+					          sh '''
+					             echo "
+                                 configFileProvider([configFile(fileId: env.mvnxmlsettingsid, targetLocation: env.parentdir+'/settings.xml', variable: 'mvn_repository')]) {
+                            
+                                   cd ${parentdir}
+						         	mvn  clean package  -s settings.xml -Dmaven.test.skip=false -Dmaven.test.failure.ignore=false {MAVEN_EXTRA_OPT} 
+                                 }
+                                 "
+                                 '''
+					        }
+                }	
 			}			
 		
             stage('Initializating static code analysis with SonarQube') {
